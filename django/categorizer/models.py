@@ -15,4 +15,4 @@ class Topic(models.Model):
 class Option(models.Model):
     label = models.CharField(max_length=128)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    topics = models.ManyToManyField(Topic)
+    topics = models.ManyToManyField(Topic, related_name='options')

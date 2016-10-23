@@ -46,5 +46,38 @@ class CategorySerializer(HateoasFieldSerializer):
 
     def getLinks(self, category):
         return [
-            ('self', reverse('category-detail', kwargs={'id': category.id}, request=self.request))
+            ('self', reverse('category-detail', kwargs={
+                'category': category.id}, request=self.request)),
+            ('options', reverse('option-list', kwargs={
+                'category': category.id}, request=self.request)),
+            ('topics', reverse('topic-list', kwargs={
+                'category': category.id}, request=self.request)),
+        ]
+
+
+class TopicSerializer(HateoasFieldSerializer):
+    fields = ('label',)
+
+    def getLinks(self, topic):
+        return [
+            ('self', reverse('topic-detail', kwargs={
+                'category': topic.category_id,
+                'topic': topic.id}, request=self.request)),
+            ('options', reverse('topic-options-list', kwargs={
+                'category': topic.category_id,
+                'topic': topic.id}, request=self.request)),
+        ]
+
+
+class OptionSerializer(HateoasFieldSerializer):
+    fields = ('label',)
+
+    def getLinks(self, option):
+        return [
+            ('self', reverse('option-detail', kwargs={
+                'category': option.category_id,
+                'option': option.id}, request=self.request)),
+            ('topics', reverse('option-topics-list', kwargs={
+                'category': option.category_id,
+                'option': option.id}, request=self.request)),
         ]
