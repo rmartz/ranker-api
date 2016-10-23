@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
-    'categorizer'
+    'categorizer',
+
+    'django_extensions',
 ]
 
 MIDDLEWARE_CLASSES = [
