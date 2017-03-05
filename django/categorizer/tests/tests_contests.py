@@ -39,5 +39,10 @@ class ContestTestCase(TestCase):
         self.assertEqual(self.red.rankings.get(contest=contest).score, 1008)
         self.assertEqual(self.blue.rankings.get(contest=contest).score, 992)
 
+        # Check if marking a second winner causes an error
+        second_place = contest.contestants.get(topicoption=self.blue)
+        self.assertRaises(AssertionError, contest.set_winner, second_place)
+
+        # Check that red is ranked above blue
         top_options = list(self.topic.calculate_top_options(2))
         self.assertEqual(top_options, [self.red, self.blue])
