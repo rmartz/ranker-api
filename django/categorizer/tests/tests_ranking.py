@@ -64,6 +64,18 @@ class RankedPreferenceTestCase(TestCase):
                                               self.tied_plurality))
         self.assertEqual(winners, ['Blue', 'Green', 'Red'])
 
+        # Yellow wins 1st place
+        # Repeat without Yellow
+        # Round 1: Green gets only 2 votes, dops out
+        # Round 2: Red gets 5 votes, wins 2nd place
+        # Repeat without Yellow or Red
+        # Round 1: Blue gets 4 votes, wins 3rd place
+        # Repeat without Yellow, Red or Blue
+        # Round 1: Green gets 3 votes, wins 4th place
+        winner = list(full_ranked_preference(self.candidates,
+                                             self.spoiler_effect))
+        self.assertEqual(winner, ['Yellow', 'Red', 'Blue', 'Green'])
+
     def test_condorcet_winner(self):
         # Red v Green: Green wins with 3 over 2
         # Blue v Red: Blue wins with 3 over 2
