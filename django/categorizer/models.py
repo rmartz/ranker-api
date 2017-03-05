@@ -1,9 +1,12 @@
 from __future__ import unicode_literals
 
 import itertools
+import operator
 
 from django.db import models
 from django.contrib.auth.models import User
+
+from .ranked_preference import full_ranked_preference
 
 
 class Option(models.Model):
@@ -16,13 +19,21 @@ class Topic(models.Model):
                                      through='TopicOption')
 
     def calculate_top_options(self, count):
-        for user in self.options_set.values('rankings__user').distinct():
-            votes = (self.options_set.filter(rankings__user=user)
-                     .order_by('-ranking__score'))
+        all_votes = (self.options.order_by('topicoption__rankings__user',
+                                           '-topicoption__rankings__score')
+                     .values_list('topicoption__rankings__user__id', 'id'))
+        all_candidates = self.options.values_list('id', flat=True)
 
-            raise Exception(votes)
+        user_votes = (map(operator.itemgetter(1), votes) for _, votes in
+                      itertools.groupby(all_votes, lambda x: x[0]))
 
-        return self.options.order_by(models.Avg('rankings__score'))[:count]
+        results_generator = full_ranked_preference(all_candidates, user_votes)
+        sorted_results = list(itertools.islice(results_generator, count))
+
+        top_results = {obj.id: obj for obj in
+                       TopicOption.objects.filter(id__in=sorted_results)}
+
+        return [top_results[id] for id in sorted_results]
 
 
 class TopicOption(models.Model):

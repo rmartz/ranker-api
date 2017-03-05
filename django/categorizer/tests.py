@@ -38,3 +38,6 @@ class ContestTestCase(TestCase):
 
         self.assertEqual(self.red.rankings.get(contest=contest).score, 1008)
         self.assertEqual(self.blue.rankings.get(contest=contest).score, 992)
+
+        top_options = list(self.topic.calculate_top_options(2))
+        self.assertEqual(top_options, [self.red, self.blue])
