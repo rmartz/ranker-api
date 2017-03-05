@@ -1,6 +1,5 @@
 from django.test import TestCase
-from categorizer.models import (Topic, Option, TopicOption, Contest,
-                                OptionRanking)
+from categorizer.models import Topic, Option, TopicOption, Contest
 from django.contrib.auth.models import User
 
 
@@ -33,8 +32,9 @@ class ContestTestCase(TestCase):
             self.assertIn(contestant.topicoption, [self.red, self.blue])
             self.assertEqual(contestant.user, self.user)
 
+        # Mark red as the winner
         winner = contest.contestants.get(topicoption=self.red)
         contest.set_winner(winner)
 
-        self.assertEqual(self.red.rankings.get(contest=contest).score, 992)
-        self.assertEqual(self.blue.rankings.get(contest=contest).score, 991.8158257405154)
+        self.assertEqual(self.red.rankings.get(contest=contest).score, 1008)
+        self.assertEqual(self.blue.rankings.get(contest=contest).score, 992)

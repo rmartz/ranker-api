@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -48,16 +50,22 @@ class Contest(models.Model):
                                null=True, related_name='wins')
 
     def set_winner(self, winner):
+        def elo_expected_score(contestant, opponent):
+            score_range = opponent.score - contestant.score
+            return 1.0 / (1 + pow(10, score_range / 400))
+
         assert(self.winner is None)
         assert(winner in self.contestants.all())
 
-        for contestant, opponent in [(self.contestants.all().order_by('id')),
-                                     (self.contestants.all().order_by('-id'))]:
-            score = 1 if contestant is winner else 0
-            rating_gap = opponent.score - contestant.score
-            expected = 1.0 / (1 + pow(10, rating_gap / 400))
+        results = [(contestant,
+                    contestant == winner,
+                    elo_expected_score(contestant, opponent))
+                   for contestant, opponent in
+                   itertools.permutations(self.contestants.all(), 2)]
 
-            adjustment = 16 * (score - expected)
+        for contestant, is_winner, expected_score in results:
+            score = 1 if is_winner else 0
+            adjustment = 16 * (score - expected_score)
 
             contestant.score = models.F('score') + adjustment
             contestant.save()
