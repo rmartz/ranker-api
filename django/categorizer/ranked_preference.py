@@ -28,12 +28,24 @@ def maxdict(d):
     return max(d.iteritems(), key=itemgetter(1))
 
 
+def odd_man_out(start):
+    """ Generates a tuple for each item paired with every other element.
+    For example, ['a', 'b'] becomes [['a', ['b']], ['b', ['a']]]
+    """
+    for key in start:
+        value = list(start)
+        value.remove(key)
+        yield [key, value]
+
+
 def instant_runoff(candidates, preferences):
     candidates = set(candidates)
     while candidates:
         top_votes = firstif(inlist(candidates), preferences)
         round_votes = Counter(top_votes)
         total_votes = sum(round_votes.values())
+        assert(total_votes > 0)
+
         (high_candidate, high_votes) = maxdict(round_votes)
         if high_votes > total_votes / 2:
             return high_candidate
@@ -41,9 +53,26 @@ def instant_runoff(candidates, preferences):
         low_votes = min(round_votes.values())
         if low_votes == high_votes:
             # Last remaining candidates are tied
-            return candidates
+            return round_votes.keys()
 
         candidates = set(c for (c, v) in round_votes.iteritems() if v > low_votes)
+    return None
+
+
+def condorcet_winner(candidates, preferences):
+    def is_condorcet(candidate, opponents, preferences):
+        for opponent in opponents:
+            votes = firstif(inlist([candidate, opponent]), preferences)
+            counts = Counter(votes)
+            if counts[candidate] < counts[opponent]:
+                # Can't be a condorcet winner if a opponent received more votes
+                return False
+        # No opponent had more votes, therefore this is a condorcet winer
+        return True
+
+    for candidate, opponents in odd_man_out(candidates):
+        if is_condorcet(candidate, opponents, preferences):
+            return candidate
     return None
 
 
@@ -51,7 +80,11 @@ def full_ranked_preference(candidates, preferences):
     preferences = list(preferences)
     candidates = list(candidates)
     while candidates:
-        v = instant_runoff(candidates, preferences)
+        try:
+            v = instant_runoff(candidates, preferences)
+        except AssertionError:
+            return
+
         yield v
         try:
             candidates.remove(v)
