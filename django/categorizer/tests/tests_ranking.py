@@ -5,7 +5,7 @@ from categorizer.ranked_preference import instant_runoff, full_ranked_preference
 # Create your tests here.
 class ContestTestCase(TestCase):
     def test_instant_runoff(self):
-        candidates = ['Blue', 'Red', 'Green']
+        candidates = ['Blue', 'Red', 'Green', 'Yellow']
         votes = [
             ['Red', 'Blue', 'Green'],
             ['Blue', 'Red'],
@@ -15,9 +15,27 @@ class ContestTestCase(TestCase):
         ]
 
         # Round 1: Red gets only 1 vote, drops out
-        # Roud 2: Blue gets 3 votes, wins
+        # Round 2: Blue gets 3 votes, wins
         winner = instant_runoff(candidates, votes)
         self.assertEqual(winner, 'Blue')
+
+        votes = [
+            ['Red', 'Yellow', 'Green'],
+            ['Yellow', 'Red'],
+            ['Yellow', 'Red'],
+            ['Green', 'Yellow', 'Red'],
+            ['Green', 'Red', 'Yellow'],
+            ['Blue'],
+            ['Blue'],
+            ['Blue'],
+            ['Blue'],
+        ]
+
+        # Round 1: Red gets only 1 vote, drops out
+        # Round 2: Green gets only 2 votes, drops out
+        # Round 3: Yellow gets 5 votes, wins
+        winner = instant_runoff(candidates, votes)
+        self.assertEqual(winner, 'Yellow')
 
     def test_full_ranked_preference(self):
         candidates = ['Blue', 'Red', 'Green']
