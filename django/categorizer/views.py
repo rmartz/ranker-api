@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from categorizer.models import Topic
-from categorizer.serializers import TopicSerializer
+from categorizer.models import Topic, Option
+from categorizer.serializers import TopicSerializer, OptionSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -38,5 +38,41 @@ def topic_detail(request, topic_id):
         topic.save()
         return Response({
             'id': topic.id,
+            'status': 'updated'
+        })
+
+
+@api_view(['GET', 'POST'])
+def option_list(request):
+    if request.method == 'GET':
+        options = Option.objects.all().values('id', 'label')
+        serialized = OptionSerializer(options, many=True)
+        return Response(serialized.data)
+    elif request.method == 'POST':
+        label = request.POST['label']
+        option = Option.objects.create(label=label)
+        return Response({
+            'id': option.id,
+            'status': 'created'
+        })
+
+
+@api_view(['GET', 'DELETE', 'POST'])
+def option_detail(request, option_id):
+    option = get_object_or_404(Option, id=option_id)
+    if request.method == 'GET':
+        serialized = OptionSerializer(option)
+        return Response(serialized.data)
+    elif request.method == 'DELETE':
+        option.delete()
+        return Response({
+            'id': int(option_id),
+            'status': 'deleted'
+        })
+    elif request.method == 'POST':
+        option.label = request.POST['label']
+        option.save()
+        return Response({
+            'id': option.id,
             'status': 'updated'
         })
