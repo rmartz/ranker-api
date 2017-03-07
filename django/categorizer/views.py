@@ -30,7 +30,6 @@ def topic_detail(request, topic_id):
     elif request.method == 'DELETE':
         topic.delete()
         return Response({
-            'id': int(topic_id),
             'status': 'deleted'
         })
     elif request.method == 'POST':
@@ -66,7 +65,6 @@ def option_detail(request, option_id):
     elif request.method == 'DELETE':
         option.delete()
         return Response({
-            'id': int(option_id),
             'status': 'deleted'
         })
     elif request.method == 'POST':
