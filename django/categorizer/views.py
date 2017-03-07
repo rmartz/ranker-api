@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from categorizer.models import Topic, Option
+from categorizer.models import Topic, Option, TopicOption
 from categorizer.serializers import TopicSerializer, OptionSerializer
 
 
@@ -75,4 +75,37 @@ def option_detail(request, option_id):
         return Response({
             'id': option.id,
             'status': 'updated'
+        })
+
+
+@api_view(['GET'])
+def topic_option_list(request, topic_id):
+    options = (Option.objects.filter(topicoption__topic__id=topic_id)
+               .values('id', 'label'))
+    serialized = OptionSerializer(options, many=True)
+    return Response(serialized.data)
+
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def topic_option_detail(request, topic_id, option_id):
+    if request.method == 'PUT':
+        mapping = TopicOption.objects.create(
+            topic_id=topic_id,
+            option_id=option_id
+        )
+        return Response({
+            'status': 'created'
+        })
+
+    # For GET or DELETE, a TopicOption object must aleady exist
+    mapping = get_object_or_404(TopicOption, topic__id=topic_id,
+                                option__id=option_id)
+    if request.method == 'GET':
+        return Response({
+            'status': 'OK'
+        })
+    elif request.method == 'DELETE':
+        mapping.delete()
+        return Response({
+            'status': 'deleted'
         })
