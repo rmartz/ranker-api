@@ -4,7 +4,6 @@ from categorizer.ranked_preference import (instant_runoff,
                                            condorcet_winner)
 
 
-# Create your tests here.
 class RankedPreferenceTestCase(TestCase):
     def setUp(self):
         self.candidates = ['Blue', 'Red', 'Green', 'Yellow']
