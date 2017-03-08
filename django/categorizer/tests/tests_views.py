@@ -120,5 +120,9 @@ class RestApiTestCase(TestCase):
                          set([first.id, second.id]))
 
         response = self.c.post('/api/topics/%d/contests/' % topic.id,
+                               {'winner': -1})
+        self.assertEqual(response.status_code, 400)
+
+        response = self.c.post('/api/topics/%d/contests/' % topic.id,
                                {'winner': first.id})
         self.assertEqual(response.json(), {'status': 'OK'})

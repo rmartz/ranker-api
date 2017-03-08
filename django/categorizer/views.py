@@ -1,9 +1,12 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
-from categorizer.models import Topic, Option, TopicOption, Contest, OptionRanking
-from categorizer.serializers import TopicSerializer, OptionSerializer, ContestSerializer
+from categorizer.models import (Topic, Option, TopicOption, Contest,
+                                OptionRanking)
+from categorizer.serializers import (TopicSerializer, OptionSerializer,
+                                     ContestSerializer)
 
 
 @api_view(['GET', 'POST'])
@@ -125,7 +128,11 @@ def contest_manager(request, topic_id):
         return Response(serialized.data)
     elif request.method == 'POST':
         winning_id = request.POST['winner']
-        winner = contest.contestants.get(topicoption__option_id=winning_id)
+        try:
+            winner = contest.contestants.get(topicoption__option_id=winning_id)
+        except OptionRanking.DoesNotExist:
+            raise ParseError()
+
         contest.set_winner(winner)
         return Response({
             'status': 'OK'
