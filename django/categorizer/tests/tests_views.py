@@ -121,8 +121,10 @@ class RestApiTestCase(TestCase):
         TopicOption.objects.create(topic=topic, option=second)
 
         response = self.c.get('/api/topics/%d/contests/' % topic.id)
-        self.assertEqual(set(response.json()['contestants']),
-                         set([first.id, second.id]))
+        self.assertItemsEqual(response.json(), [
+            {'id': first.id, 'label': first.label},
+            {'id': second.id, 'label': second.label}
+        ])
 
         response = self.c.post('/api/topics/%d/contests/' % topic.id,
                                {'winner': -1})

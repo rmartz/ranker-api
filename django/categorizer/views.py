@@ -124,7 +124,9 @@ def contest_manager(request, topic_id):
         contest = Contest.create_random(topic=topic_id, user=request.user)
 
     if request.method == 'GET':
-        serialized = ContestSerializer(contest)
+        contestants = Option.objects.filter(
+            topicoption__rankings__in=contest.contestants.all())
+        serialized = OptionSerializer(contestants, many=True)
         return Response(serialized.data)
     elif request.method == 'POST':
         winning_id = request.POST['winner']

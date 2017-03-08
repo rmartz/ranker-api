@@ -50,7 +50,7 @@ class RankedPreferenceTestCase(TestCase):
 
         # In a circular loop, all candidates tie first round
         winner = instant_runoff(self.candidates, self.circular_loop)
-        self.assertEqual(set(winner), set(['Red', 'Blue', 'Green']))
+        self.assertItemsEqual(winner, ['Red', 'Blue', 'Green'])
 
     def test_full_ranked_preference(self):
         # Round 1: Red gets only 1 vote, drops out
