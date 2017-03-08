@@ -113,6 +113,11 @@ class RestApiTestCase(TestCase):
         second = Option.objects.create(label="Test Option 2")
 
         TopicOption.objects.create(topic=topic, option=first)
+
+        # Can't view a contest when only one option is configured
+        response = self.c.get('/api/topics/%d/contests/' % topic.id)
+        self.assertEqual(response.status_code, 400)
+
         TopicOption.objects.create(topic=topic, option=second)
 
         response = self.c.get('/api/topics/%d/contests/' % topic.id)
