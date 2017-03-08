@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from categorizer.models import Topic, Option, TopicOption
-from categorizer.serializers import TopicSerializer, OptionSerializer
+from categorizer.models import Topic, Option, TopicOption, Contest, OptionRanking
+from categorizer.serializers import TopicSerializer, OptionSerializer, ContestSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -106,4 +106,27 @@ def topic_option_detail(request, topic_id, option_id):
         mapping.delete()
         return Response({
             'status': 'deleted'
+        })
+
+
+@api_view(['GET', 'POST'])
+def contest_manager(request, topic_id):
+    try:
+        contest = Contest.objects.distinct().get(
+            contestants__user=request.user,
+            contestants__topicoption__topic_id=topic_id,
+            winner__isnull=True
+        )
+    except Contest.DoesNotExist:
+        contest = Contest.create_random(topic=topic_id, user=request.user)
+
+    if request.method == 'GET':
+        serialized = ContestSerializer(contest)
+        return Response(serialized.data)
+    elif request.method == 'POST':
+        winning_id = request.POST['winner']
+        winner = contest.contestants.get(topicoption__option_id=winning_id)
+        contest.set_winner(winner)
+        return Response({
+            'status': 'OK'
         })

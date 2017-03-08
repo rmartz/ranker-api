@@ -90,6 +90,7 @@ class Contest(models.Model):
         all_ids = (TopicOption.objects.filter(topic=topic)
                    .values_list('id', flat=True))
 
+        assert(all_ids.count() >= 2)
         contest = Contest.objects.create()
         for topicoption_id in random.sample(all_ids, 2):
             ranking = (OptionRanking.objects
