@@ -31,7 +31,7 @@ class Topic(models.Model):
         sorted_results = list(itertools.islice(results_generator, count))
 
         top_results = {obj.id: obj for obj in
-                       TopicOption.objects.filter(id__in=sorted_results)}
+                       Option.objects.filter(topicoption__id__in=sorted_results)}
 
         return [top_results[id] for id in sorted_results]
 

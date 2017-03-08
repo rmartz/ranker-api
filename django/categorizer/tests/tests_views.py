@@ -131,3 +131,9 @@ class RestApiTestCase(TestCase):
         response = self.c.post('/api/topics/%d/contests/' % topic.id,
                                {'winner': first.id})
         self.assertEqual(response.json(), {'status': 'OK'})
+
+        response = self.c.get('/api/topics/%d/rankings/' % topic.id)
+        self.assertEqual(response.json(), [
+            {'id': first.id, 'label': first.label},
+            {'id': second.id, 'label': second.label}
+        ])

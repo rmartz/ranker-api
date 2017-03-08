@@ -137,3 +137,14 @@ def contest_manager(request, topic_id):
         return Response({
             'status': 'OK'
         })
+
+
+@api_view(['GET'])
+def topic_rankings(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+
+    count = request.GET.get('count', 5)
+    top_n = topic.calculate_top_options(count)
+
+    serialized = OptionSerializer(top_n, many=True)
+    return Response(serialized.data)
