@@ -1,5 +1,5 @@
 from django.test import TestCase
-from categorizer.ranked_preference import (instant_runoff,
+from categorizer.ranked_preference import (instant_runoff, pairwise_rankings,
                                            full_ranked_preference,
                                            condorcet_winner)
 
@@ -20,6 +20,17 @@ class RankedPreferenceTestCase(TestCase):
             ['Green', 'Blue', 'Red']
         ]
         self.spoiler_effect = [
+            ['Red'],
+            ['Red'],
+            ['Red'],
+            ['Yellow', 'Red'],
+            ['Yellow', 'Red'],
+            ['Blue'],
+            ['Blue'],
+            ['Blue'],
+            ['Blue']
+        ]
+        self.partisan_split = [
             ['Red', 'Yellow', 'Green'],
             ['Yellow', 'Red'],
             ['Yellow', 'Red'],
@@ -29,6 +40,10 @@ class RankedPreferenceTestCase(TestCase):
             ['Blue'],
             ['Blue'],
             ['Blue'],
+        ]
+        self.simple_tie = [
+            ['Red'],
+            ['Blue']
         ]
         self.circular_loop = [
             ['Red', 'Blue', 'Green'],
@@ -45,8 +60,13 @@ class RankedPreferenceTestCase(TestCase):
         # Round 1: Red gets only 1 vote, drops out
         # Round 2: Green gets only 2 votes, drops out
         # Round 3: Yellow gets 5 votes, wins
-        winner = instant_runoff(self.candidates, self.spoiler_effect)
+        winner = instant_runoff(self.candidates, self.partisan_split)
         self.assertEqual(winner, 'Yellow')
+
+        # Round 1: Yellow drops out
+        # Round 2: Red wins
+        winner = instant_runoff(self.candidates, self.spoiler_effect)
+        self.assertEqual(winner, 'Red')
 
         # In a circular loop, all candidates tie first round
         winner = instant_runoff(self.candidates, self.circular_loop)
@@ -72,8 +92,17 @@ class RankedPreferenceTestCase(TestCase):
         # Repeat without Yellow, Red or Blue
         # Round 1: Green gets 3 votes, wins 4th place
         winner = list(full_ranked_preference(self.candidates,
-                                             self.spoiler_effect))
+                                             self.partisan_split))
         self.assertEqual(winner, ['Yellow', 'Red', 'Blue', 'Green'])
+
+        # Round 1: Yellow drops out
+        # Round 2: Red wins
+        # Repeat without Red
+        # Round 1: Blue wins
+        # Repeat without Blue
+        # Round 1: Yellow wins
+        winner = instant_runoff(self.candidates, self.spoiler_effect)
+        self.assertEqual(winner, ['Red', 'Blue', 'Yellow'])
 
     def test_condorcet_winner(self):
         # Red v Green: Green wins with 3 over 2
@@ -86,3 +115,13 @@ class RankedPreferenceTestCase(TestCase):
         # In a circular loop, all candidates beat one and lose to the other
         winner = condorcet_winner(self.candidates, self.circular_loop)
         self.assertEqual(winner, None)
+
+    def test_pairwise_rankings(self):
+        winners = pairwise_rankings(self.candidates, self.tied_plurality)
+        self.assertEqual(winners, ['Blue', 'Green', 'Red'])
+
+        winners = pairwise_rankings(self.candidates, self.partisan_split)
+        self.assertEqual(winners, ['Yellow', 'Red', 'Blue', 'Green'])
+
+        winners = pairwise_rankings(self.candidates, self.spoiler_effect)
+        self.assertEqual(winners, ['Red', 'Blue', 'Yellow'])

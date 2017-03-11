@@ -1,4 +1,4 @@
-from itertools import ifilter, ifilterfalse
+import itertools
 from collections import Counter
 from operator import itemgetter
 import functools
@@ -17,7 +17,7 @@ def firstif(pred, l):
     """
     for v in l:
         try:
-            yield next(ifilter(pred, v))
+            yield next(itertools.ifilter(pred, v))
         except StopIteration:
             pass
 
@@ -76,6 +76,23 @@ def condorcet_winner(candidates, preferences):
     return None
 
 
+def pairwise_rankings(candidates, preferences):
+    # Get a list of all candidate combinations
+    pairs = itertools.combinations(candidates, 2)
+
+    # For each pair, build a list of who got the higher vote
+    pair_votes = (firstif(inlist(pair), preferences) for pair in pairs)
+
+    # Count the votes and pick the winner
+    tallies = (Counter(votes) for votes in pair_votes)
+    winners = (maxdict(tally)[0] for tally in tallies)
+
+    # Count who won how many pairings and sort by their wins
+    final_tally = Counter(winners).iteritems()
+    return map(itemgetter(0), sorted(final_tally, key=itemgetter(1),
+                                     reverse=True))
+
+
 def full_ranked_preference(candidates, preferences):
     preferences = list(preferences)
     candidates = list(candidates)
@@ -89,4 +106,4 @@ def full_ranked_preference(candidates, preferences):
         try:
             candidates.remove(v)
         except ValueError:
-            candidates = list(ifilterfalse(inlist(v), candidates))
+            candidates = list(itertools.ifilterfalse(inlist(v), candidates))
