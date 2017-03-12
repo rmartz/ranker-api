@@ -37,8 +37,10 @@ class Topic(models.Model):
 
 
 class TopicOption(models.Model):
-    option = models.ForeignKey(Option, on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    option = models.ForeignKey(Option, on_delete=models.CASCADE,
+                               related_name='topicoption')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE,
+                              related_name='topicoption')
 
     class Meta:
         unique_together = (("option", "topic"),)
