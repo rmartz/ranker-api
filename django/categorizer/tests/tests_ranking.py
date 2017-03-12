@@ -101,7 +101,8 @@ class RankedPreferenceTestCase(TestCase):
         # Round 1: Blue wins
         # Repeat without Blue
         # Round 1: Yellow wins
-        winner = instant_runoff(self.candidates, self.spoiler_effect)
+        winner = list(full_ranked_preference(self.candidates,
+                                             self.spoiler_effect))
         self.assertEqual(winner, ['Red', 'Blue', 'Yellow'])
 
     def test_condorcet_winner(self):
@@ -118,10 +119,10 @@ class RankedPreferenceTestCase(TestCase):
 
     def test_pairwise_rankings(self):
         winners = pairwise_rankings(self.candidates, self.tied_plurality)
-        self.assertEqual(winners, ['Blue', 'Green', 'Red'])
+        self.assertEqual(winners, ['Blue', 'Green', 'Red', 'Yellow'])
 
         winners = pairwise_rankings(self.candidates, self.partisan_split)
         self.assertEqual(winners, ['Yellow', 'Red', 'Blue', 'Green'])
 
         winners = pairwise_rankings(self.candidates, self.spoiler_effect)
-        self.assertEqual(winners, ['Red', 'Blue', 'Yellow'])
+        self.assertEqual(winners, ['Red', 'Blue', 'Yellow', 'Green'])

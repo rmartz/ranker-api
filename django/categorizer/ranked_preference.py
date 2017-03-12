@@ -88,9 +88,9 @@ def pairwise_rankings(candidates, preferences):
     winners = (maxdict(tally)[0] for tally in tallies)
 
     # Count who won how many pairings and sort by their wins
-    final_tally = Counter(winners).iteritems()
-    return map(itemgetter(0), sorted(final_tally, key=itemgetter(1),
-                                     reverse=True))
+    final_tally = Counter(winners)
+    return sorted(candidates, key=lambda c: final_tally.get(c, 0),
+                  reverse=True)
 
 
 def full_ranked_preference(candidates, preferences):
