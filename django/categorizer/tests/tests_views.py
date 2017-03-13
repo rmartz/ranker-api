@@ -18,12 +18,15 @@ class TopicApiTestCase(TestCase):
 
     def test_topic_list_empty(self):
         response = self.c.get('/api/topics/')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
-    def tes_topic_create(self):
+    def test_topic_create(self):
         response = self.c.post('/api/topics/', {'label': 'Testing 123'})
+        self.assertEqual(response.status_code, 201)
+
         response_json = response.json()
-        topic_id = response['id']
+        topic_id = response_json['id']
         self.assertEqual(response_json, {'id': topic_id, 'status': 'created'})
 
         topic = Topic.objects.get(id=topic_id)
@@ -32,12 +35,14 @@ class TopicApiTestCase(TestCase):
     def test_topic_list(self):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.get('/api/topics/')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [{'id': topic.id,
                                             'label': topic.label}])
 
     def test_topic_detail(self):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.get('/api/topics/%d/' % topic.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': topic.id,
                                            'label': topic.label})
 
@@ -49,6 +54,7 @@ class TopicApiTestCase(TestCase):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.post('/api/topics/%d/' % topic.id,
                                {'label': 'Testing 456'})
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': topic.id,
                                            'status': 'updated'})
 
@@ -58,6 +64,7 @@ class TopicApiTestCase(TestCase):
     def test_topic_delete(self):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.delete('/api/topics/%d/' % topic.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'deleted'})
 
         with self.assertRaises(Topic.DoesNotExist):
@@ -74,10 +81,13 @@ class OptionApiTestCase(TestCase):
 
     def test_option_list_empty(self):
         response = self.c.get('/api/options/')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
     def test_option_create(self):
         response = self.c.post('/api/options/', {'label': 'Testing 123'})
+        self.assertEqual(response.status_code, 201)
+
         response_json = response.json()
         option_id = response_json['id']
         self.assertEqual(response_json, {'id': option_id,
@@ -89,12 +99,14 @@ class OptionApiTestCase(TestCase):
     def test_option_list(self):
         option = Option.objects.create(label='Testing 123')
         response = self.c.get('/api/options/')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [{'id': option.id,
                                             'label': 'Testing 123'}])
 
     def test_option_detail(self):
         option = Option.objects.create(label='Testing 123')
         response = self.c.get('/api/options/%d/' % option.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': option.id,
                                            'label': 'Testing 123'})
 
@@ -106,6 +118,7 @@ class OptionApiTestCase(TestCase):
         option = Option.objects.create(label='Testing 123')
         response = self.c.post('/api/options/%d/' % option.id,
                                {'label': 'Testing 456'})
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': option.id,
                                            'status': 'updated'})
 
@@ -115,6 +128,7 @@ class OptionApiTestCase(TestCase):
     def test_option_delete(self):
         option = Option.objects.create(label='Testing 123')
         response = self.c.delete('/api/options/%d/' % option.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'deleted'})
 
         with self.assertRaises(Option.DoesNotExist):
@@ -135,11 +149,13 @@ class TopicOptionMapTestCase(TestCase):
     def test_topic_option_list(self):
         TopicOption.objects.create(topic=self.topic, option=self.option)
         response = self.c.get('/api/topics/%d/options/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [{'id': self.option.id,
                                             'label': self.option.label}])
 
     def test_topic_option_list_empty(self):
         response = self.c.get('/api/topics/%d/options/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
     def test_topic_option_map_missing(self):
@@ -149,20 +165,23 @@ class TopicOptionMapTestCase(TestCase):
     def test_topic_option_map_create(self):
         response = self.c.put('/api/topics/%d/options/%d' % (self.topic.id,
                                                              self.option.id))
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json(), {'status': 'created'})
         self.assertTrue(TopicOption.objects.filter(
             topic=self.topic, option=self.option).exists())
 
-    def test_topic_option_map(self):
+    def test_topic_option_map_check(self):
         TopicOption.objects.create(topic=self.topic, option=self.option)
         response = self.c.get('/api/topics/%d/options/%d' % (self.topic.id,
                                                              self.option.id))
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'OK'})
 
     def test_topic_option_map_delete(self):
         TopicOption.objects.create(topic=self.topic, option=self.option)
         response = self.c.delete('/api/topics/%d/options/%d' %
                                  (self.topic.id, self.option.id))
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'deleted'})
 
         self.assertFalse(TopicOption.objects.filter(
@@ -205,6 +224,7 @@ class TopicContestTestCase(TestCase):
         OptionRanking.objects.all().delete()
 
         response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
         # assertItemsEqual because the order is randomized
         self.assertItemsEqual(response.json(), [
             {'id': self.first.id, 'label': self.first.label},
@@ -219,6 +239,7 @@ class TopicContestTestCase(TestCase):
     def test_contest_vote(self):
         response = self.c.post('/api/topics/%d/contests/' % self.topic.id,
                                {'winner': self.first.id})
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'OK'})
 
         self.assertEqual(self.first.topicoption.get(topic=self.topic)
@@ -232,6 +253,7 @@ class TopicContestTestCase(TestCase):
         ranking.save()
 
         response = self.c.get('/api/topics/%d/rankings/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [
             {'id': self.second.id, 'label': self.second.label},
             {'id': self.first.id, 'label': self.first.label}

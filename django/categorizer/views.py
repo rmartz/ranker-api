@@ -2,11 +2,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED
 
 from categorizer.models import (Topic, Option, TopicOption, Contest,
                                 OptionRanking)
-from categorizer.serializers import (TopicSerializer, OptionSerializer,
-                                     ContestSerializer)
+from categorizer.serializers import (TopicSerializer, OptionSerializer)
 
 
 @api_view(['GET', 'POST'])
@@ -21,7 +21,7 @@ def topic_list(request):
         return Response({
             'id': topic.id,
             'status': 'created'
-        })
+        }, status=HTTP_201_CREATED)
 
 
 @api_view(['GET', 'DELETE', 'POST'])
@@ -56,7 +56,7 @@ def option_list(request):
         return Response({
             'id': option.id,
             'status': 'created'
-        })
+        }, status=HTTP_201_CREATED)
 
 
 @api_view(['GET', 'DELETE', 'POST'])
@@ -96,7 +96,7 @@ def topic_option_detail(request, topic_id, option_id):
         )
         return Response({
             'status': 'created'
-        })
+        }, status=HTTP_201_CREATED)
 
     # For GET or DELETE, a TopicOption object must aleady exist
     mapping = get_object_or_404(TopicOption, topic__id=topic_id,
