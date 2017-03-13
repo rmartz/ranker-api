@@ -21,6 +21,10 @@ class TopicApiTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
+    def test_topic_list_noauth(self):
+        response = Client().get('/api/topics/')
+        self.assertEqual(response.status_code, 401)
+
     def test_topic_create(self):
         response = self.c.post('/api/topics/', {'label': 'Testing 123'})
         self.assertEqual(response.status_code, 201)
@@ -45,6 +49,10 @@ class TopicApiTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': topic.id,
                                            'label': topic.label})
+
+    def test_topic_detail_noauth(self):
+        response = Client().get('/api/topics/1/')
+        self.assertEqual(response.status_code, 401)
 
     def test_topic_detail_missing(self):
         response = self.c.get('/api/topics/1/')
@@ -84,6 +92,10 @@ class OptionApiTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
+    def test_option_list_noauth(self):
+        response = Client().get('/api/options/')
+        self.assertEqual(response.status_code, 401)
+
     def test_option_create(self):
         response = self.c.post('/api/options/', {'label': 'Testing 123'})
         self.assertEqual(response.status_code, 201)
@@ -109,6 +121,10 @@ class OptionApiTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': option.id,
                                            'label': 'Testing 123'})
+
+    def test_option_detail_noauth(self):
+        response = Client().get('/api/options/1/')
+        self.assertEqual(response.status_code, 401)
 
     def test_option_detail_missing(self):
         response = self.c.get('/api/options/1/')
@@ -158,9 +174,17 @@ class TopicOptionMapTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
+    def test_topic_option_list_noauth(self):
+        response = Client().get('/api/topics/%d/options/' % self.topic.id)
+        self.assertEqual(response.status_code, 401)
+
     def test_topic_option_map_missing(self):
         response = self.c.get('/api/topics/%d/options/1' % self.topic.id)
         self.assertEqual(response.status_code, 404)
+
+    def test_topic_option_map_noauth(self):
+        response = Client().get('/api/topics/%d/options/1' % self.topic.id)
+        self.assertEqual(response.status_code, 401)
 
     def test_topic_option_map_create(self):
         response = self.c.put('/api/topics/%d/options/%d' % (self.topic.id,
@@ -219,6 +243,10 @@ class TopicContestTestCase(TestCase):
         response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
         self.assertEqual(response.status_code, 400)
 
+    def test_contest_get_noauth(self):
+        response = Client().get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 401)
+
     def test_contest_automatic_create(self):
         Contest.objects.all().delete()
         OptionRanking.objects.all().delete()
@@ -258,3 +286,7 @@ class TopicContestTestCase(TestCase):
             {'id': self.second.id, 'label': self.second.label},
             {'id': self.first.id, 'label': self.first.label}
         ])
+
+    def test_topic_rankings_noauth(self):
+        response = Client().get('/api/topics/%d/rankings/' % self.topic.id)
+        self.assertEqual(response.status_code, 401)
