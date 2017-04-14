@@ -5,10 +5,7 @@ A web-based application for organizing and ranking collections of ideas across t
 The Ranker app is still in development, so there isn't a live instance of it available. Sorry!
 
 ## How it works
-At its core, there are three main concepts:
-* Options are a "thing" that can be categorized... a favorite movie, restaurant you want to check out, or cocktail recipe for an upcoming party. They can represent anything you want!
-* Topics are contexts that options can be ranked against each other within. The best summer picnic spot by the beach might not be much good if you're trying to find a snowy hike in the woods, so you can use topics to give your options meaning when picking which is your favorite.
-* Categories hold it all together, grouping topics and options into a single bucket so you don't get your Mad Max mixed in with your Lemon Meringue Pie
+The basic idea is to use an ELO-based ranking algorithm to sort lists of options, such as local restaurants or 90s pop songs. Options can be associated with topics like "Best Casual Dining" and compared with other options within the same topic in randomly selected contests - one option will win, raising its score and ranking in the topic.
 
 ## Contributing
 Want to help out? Awesome! At the moment this is just a personal project to get to play with end-to-end full stack concepts like using Vagrant and Ansible to configure nginx and Gunicorn to host Django for the backend, Angular and SCSS for the user interface, and eventually AWS hosting with EC2 and S3. Over time I plan on expanding the concepts into more and more areas, so if you'd like to help out here's how:

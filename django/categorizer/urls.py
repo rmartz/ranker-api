@@ -3,12 +3,12 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.category_list, name='category-list'),
-    url(r'^(?P<category>[0-9]+)/$', views.category_detail, name='category-detail'),
-    url(r'^(?P<category>[0-9]+)/topics/$', views.topic_list, name='topic-list'),
-    url(r'^(?P<category>[0-9]+)/topics/(?P<topic>[0-9]+)/$', views.topic_detail, name='topic-detail'),
-    url(r'^(?P<category>[0-9]+)/topics/(?P<topic>[0-9]+)/options$', views.option_list, name='topic-options-list'),
-    url(r'^(?P<category>[0-9]+)/options/$', views.option_list, name='option-list'),
-    url(r'^(?P<category>[0-9]+)/options/(?P<option>[0-9]+)/$', views.option_detail, name='option-detail'),
-    url(r'^(?P<category>[0-9]+)/options/(?P<option>[0-9]+)/topics$', views.topic_list, name='option-topics-list'),
+    url(r'^topics/?$', views.topic_list),
+    url(r'^topics/([1-9][0-9]*)/?$', views.topic_detail),
+    url(r'^topics/([1-9][0-9]*)/options/?$', views.topic_option_list),
+    url(r'^topics/([1-9][0-9]*)/options/([1-9][0-9]*)/?$', views.topic_option_detail),
+    url(r'^topics/([1-9][0-9]*)/contests/?$', views.contest_manager),
+    url(r'^topics/([1-9][0-9]*)/rankings/?$', views.topic_rankings),
+    url(r'^options/?$', views.option_list),
+    url(r'^options/([1-9][0-9]*)/?$', views.option_detail),
 ]
