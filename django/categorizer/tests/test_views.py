@@ -303,6 +303,9 @@ class TopicContestTestCase(TestCase):
             {'id': self.second.id, 'label': self.second.label}
         ])
 
+        # Ensure that no new contests were created
+        self.assertEqual(Contest.objects.all().count(), 1)
+
     def test_contest_get_deleted_option(self):
         # Ensure that a new contest is generated if a option in the current one
         # is deleted
@@ -356,6 +359,24 @@ class TopicContestTestCase(TestCase):
                          .rankings.get(user=self.user).score, 1008)
         self.assertEqual(self.second.topicoption.get(topic=self.topic)
                          .rankings.get(user=self.user).score, 992)
+
+    def test_contest_create_next(self):
+        # Ensure that a new contest is created once the previous one has been
+        # voted.
+        self.contest.set_winner(
+            self.contest.contestants.get(topicoption__option=self.second)
+        )
+
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        # assertItemsEqual because the order is randomized
+        self.assertItemsEqual(response.json(), [
+            {'id': self.first.id, 'label': self.first.label},
+            {'id': self.second.id, 'label': self.second.label}
+        ])
+
+        # Ensure that a new contest was created
+        self.assertEqual(Contest.objects.all().count(), 2)
 
     def test_topic_rankings(self):
         ranking = self.contest.contestants.get(topicoption__option=self.second)
