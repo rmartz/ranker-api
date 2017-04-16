@@ -285,7 +285,7 @@ class TopicContestTestCase(TestCase):
         self.contest = Contest.objects.create(user=self.user, topic=self.topic)
         self.contest.contestants = OptionRanking.objects.filter(
                                      topicoption__topic=self.topic,
-                                     user=self.user)
+                                     user=self.user).order_by('id')
         self.contest.save()
 
     def test_contest_create_fail_no_options(self):
@@ -294,6 +294,31 @@ class TopicContestTestCase(TestCase):
         # Can't view a contest when only one option is configured
         response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
         self.assertEqual(response.status_code, 400)
+
+    def test_contest_get(self):
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [
+            {'id': self.first.id, 'label': self.first.label},
+            {'id': self.second.id, 'label': self.second.label}
+        ])
+
+    def test_contest_get_deleted_option(self):
+        # Ensure that a new contest is generated if a option in the current one
+        # is deleted
+        # Behind the scenes the current contest should be deleted if any of its
+        # options are.
+        self.first.delete()
+        third = Option.objects.create(label="Test Option 3")
+        TopicOption.objects.create(topic=self.topic, option=third)
+
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        # Use assertItemsEqual because the order is randomized
+        self.assertEqual(response.json(), [
+            {'id': self.second.id, 'label': self.second.label},
+            {'id': third.id, 'label': third.label}
+        ])
 
     def test_contest_missing(self):
         Topic.objects.all().delete()
