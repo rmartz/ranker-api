@@ -58,6 +58,10 @@ class OptionRanking(models.Model):
 
 
 class Contest(models.Model):
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE,
+                              related_name='contests')
+    user = models.ForeignKey(User, blank=True, null=True,
+                             on_delete=models.SET_NULL)
     contestants = models.ManyToManyField(OptionRanking)
     winner = models.ForeignKey(OptionRanking, on_delete=models.CASCADE,
                                null=True, related_name='wins')
@@ -93,7 +97,7 @@ class Contest(models.Model):
                    .values_list('id', flat=True))
 
         assert(all_ids.count() >= 2)
-        contest = Contest.objects.create()
+        contest = Contest.objects.create(topic=topic, user=user)
         for topicoption_id in random.sample(all_ids, 2):
             ranking = (OptionRanking.objects
                        .get_or_create(topicoption_id=topicoption_id,

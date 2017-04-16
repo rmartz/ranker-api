@@ -58,6 +58,41 @@ class TopicApiTestCase(TestCase):
         response = self.c.get('/api/topics/1/')
         self.assertEqual(response.status_code, 404)
 
+    def test_topic_contests_missing(self):
+        response = self.c.get('/api/topics/1/contests')
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_list_missing(self):
+        response = self.c.get('/api/topics/1/options')
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_detail_missing_topic(self):
+        response = self.c.get('/api/topics/1/options/1')
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_delete_missing_topic(self):
+        response = self.c.delete('/api/topics/1/options/1')
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_add_missing_topic(self):
+        response = self.c.put('/api/topics/1/options/1')
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_detail_missing_option(self):
+        topic = Topic.objects.create(label='Testing 123')
+        response = self.c.get('/api/topics/%d/options/1' % topic.id)
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_delete_missing_option(self):
+        topic = Topic.objects.create(label='Testing 123')
+        response = self.c.delete('/api/topics/%d/options/1' % topic.id)
+        self.assertEqual(response.status_code, 404)
+
+    def test_topic_options_add_missing_option(self):
+        topic = Topic.objects.create(label='Testing 123')
+        response = self.c.put('/api/topics/%d/options/1' % topic.id)
+        self.assertEqual(response.status_code, 404)
+
     def test_topic_update(self):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.post('/api/topics/%d/' % topic.id,
@@ -69,6 +104,10 @@ class TopicApiTestCase(TestCase):
         newTopic = Topic.objects.get(id=topic.id)
         self.assertEqual(newTopic.label, 'Testing 456')
 
+    def test_topic_update_missing(self):
+        response = self.c.post('/api/topics/123/', {'label': 'Testing 456'})
+        self.assertEqual(response.status_code, 404)
+
     def test_topic_delete(self):
         topic = Topic.objects.create(label='Testing 123')
         response = self.c.delete('/api/topics/%d/' % topic.id)
@@ -77,6 +116,10 @@ class TopicApiTestCase(TestCase):
 
         with self.assertRaises(Topic.DoesNotExist):
             topic = Topic.objects.get(id=topic.id)
+
+    def test_topic_delete_missing(self):
+        response = self.c.delete('/api/topics/1/')
+        self.assertEqual(response.status_code, 404)
 
 
 class OptionApiTestCase(TestCase):
@@ -122,13 +165,13 @@ class OptionApiTestCase(TestCase):
         self.assertEqual(response.json(), {'id': option.id,
                                            'label': 'Testing 123'})
 
-    def test_option_detail_noauth(self):
-        response = Client().get('/api/options/1/')
-        self.assertEqual(response.status_code, 401)
-
     def test_option_detail_missing(self):
         response = self.c.get('/api/options/1/')
         self.assertEqual(response.status_code, 404)
+
+    def test_option_detail_noauth(self):
+        response = Client().get('/api/options/1/')
+        self.assertEqual(response.status_code, 401)
 
     def test_option_update(self):
         option = Option.objects.create(label='Testing 123')
@@ -141,6 +184,10 @@ class OptionApiTestCase(TestCase):
         newOption = Option.objects.get(id=option.id)
         self.assertEqual(newOption.label, 'Testing 456')
 
+    def test_option_update_missing(self):
+        response = self.c.post('/api/options/1/', {'label': 'Testing 456'})
+        self.assertEqual(response.status_code, 404)
+
     def test_option_delete(self):
         option = Option.objects.create(label='Testing 123')
         response = self.c.delete('/api/options/%d/' % option.id)
@@ -149,6 +196,10 @@ class OptionApiTestCase(TestCase):
 
         with self.assertRaises(Option.DoesNotExist):
             option = Option.objects.get(id=option.id)
+
+    def test_option_delete_missing(self):
+        response = self.c.delete('/api/options/1/')
+        self.assertEqual(response.status_code, 404)
 
 
 class TopicOptionMapTestCase(TestCase):
@@ -231,17 +282,51 @@ class TopicContestTestCase(TestCase):
             OptionRanking.objects.create(topicoption=topicoption,
                                          user=self.user)
 
-        self.contest = Contest.objects.create()
+        self.contest = Contest.objects.create(user=self.user, topic=self.topic)
         self.contest.contestants = OptionRanking.objects.filter(
                                      topicoption__topic=self.topic,
-                                     user=self.user)
+                                     user=self.user).order_by('id')
         self.contest.save()
 
-    def test_contest_create_fail(self):
+    def test_contest_create_fail_no_options(self):
+        Contest.objects.all().delete()
         TopicOption.objects.all().delete()
         # Can't view a contest when only one option is configured
         response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
         self.assertEqual(response.status_code, 400)
+
+    def test_contest_get(self):
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [
+            {'id': self.first.id, 'label': self.first.label},
+            {'id': self.second.id, 'label': self.second.label}
+        ])
+
+        # Ensure that no new contests were created
+        self.assertEqual(Contest.objects.all().count(), 1)
+
+    def test_contest_get_deleted_option(self):
+        # Ensure that a new contest is generated if a option in the current one
+        # is deleted
+        # Behind the scenes the current contest should be deleted if any of its
+        # options are.
+        self.first.delete()
+        third = Option.objects.create(label="Test Option 3")
+        TopicOption.objects.create(topic=self.topic, option=third)
+
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        # Use assertItemsEqual because the order is randomized
+        self.assertEqual(response.json(), [
+            {'id': self.second.id, 'label': self.second.label},
+            {'id': third.id, 'label': third.label}
+        ])
+
+    def test_contest_missing(self):
+        Topic.objects.all().delete()
+        response = self.c.get('/api/topics/1/contests/')
+        self.assertEqual(response.status_code, 404)
 
     def test_contest_get_noauth(self):
         response = Client().get('/api/topics/%d/contests/' % self.topic.id)
@@ -275,6 +360,24 @@ class TopicContestTestCase(TestCase):
         self.assertEqual(self.second.topicoption.get(topic=self.topic)
                          .rankings.get(user=self.user).score, 992)
 
+    def test_contest_create_next(self):
+        # Ensure that a new contest is created once the previous one has been
+        # voted.
+        self.contest.set_winner(
+            self.contest.contestants.get(topicoption__option=self.second)
+        )
+
+        response = self.c.get('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        # assertItemsEqual because the order is randomized
+        self.assertItemsEqual(response.json(), [
+            {'id': self.first.id, 'label': self.first.label},
+            {'id': self.second.id, 'label': self.second.label}
+        ])
+
+        # Ensure that a new contest was created
+        self.assertEqual(Contest.objects.all().count(), 2)
+
     def test_topic_rankings(self):
         ranking = self.contest.contestants.get(topicoption__option=self.second)
         ranking.score = 1600
@@ -290,3 +393,8 @@ class TopicContestTestCase(TestCase):
     def test_topic_rankings_noauth(self):
         response = Client().get('/api/topics/%d/rankings/' % self.topic.id)
         self.assertEqual(response.status_code, 401)
+
+    def test_topic_rankings_missing(self):
+        Topic.objects.all().delete()
+        response = self.c.get('/api/topics/1/rankings/')
+        self.assertEqual(response.status_code, 404)

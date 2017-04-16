@@ -81,7 +81,8 @@ def option_detail(request, option_id):
 
 @api_view(['GET'])
 def topic_option_list(request, topic_id):
-    options = (Option.objects.filter(topicoption__topic__id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
+    options = (Option.objects.filter(topicoption__topic=topic)
                .values('id', 'label'))
     serialized = OptionSerializer(options, many=True)
     return Response(serialized.data)
@@ -90,9 +91,11 @@ def topic_option_list(request, topic_id):
 @api_view(['GET', 'DELETE', 'PUT'])
 def topic_option_detail(request, topic_id, option_id):
     if request.method == 'PUT':
+        topic = get_object_or_404(Topic, id=topic_id)
+        option = get_object_or_404(Option, id=option_id)
         mapping = TopicOption.objects.create(
-            topic_id=topic_id,
-            option_id=option_id
+            topic=topic,
+            option=option
         )
         return Response({
             'status': 'created'
@@ -114,14 +117,14 @@ def topic_option_detail(request, topic_id, option_id):
 
 @api_view(['GET', 'POST'])
 def contest_manager(request, topic_id):
+    topic = get_object_or_404(Topic, id=topic_id)
     try:
-        contest = Contest.objects.distinct().get(
-            contestants__user=request.user,
-            contestants__topicoption__topic_id=topic_id,
+        contest = topic.contests.distinct().get(
+            user=request.user,
             winner__isnull=True
         )
     except Contest.DoesNotExist:
-        contest = Contest.create_random(topic=topic_id, user=request.user)
+        contest = Contest.create_random(topic=topic, user=request.user)
 
     if request.method == 'GET':
         contestants = Option.objects.filter(
@@ -143,7 +146,7 @@ def contest_manager(request, topic_id):
 
 @api_view(['GET'])
 def topic_rankings(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
 
     count = request.GET.get('count', 5)
     top_n = topic.calculate_top_options(count)

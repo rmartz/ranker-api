@@ -1,6 +1,6 @@
 # Ignore any Linux hidden files - except .gitignore
 .*
-!/.gitignore
+!.gitignore
 
 # Ignore python generated files
 *.py[cod]
