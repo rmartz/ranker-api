@@ -6,18 +6,18 @@ from django.contrib.auth.models import User
 # Create your tests here.
 class ContestTestCase(TestCase):
     def setUp(self):
-        self.blue = Option.objects.create(label='Blue')
-        self.red = Option.objects.create(label='Red')
+        self.blue = Option.objects.create(label='Blue', id=1)
+        self.red = Option.objects.create(label='Red', id=2)
 
-        self.topic = Topic.objects.create(label='Favorite color')
+        self.topic = Topic.objects.create(label='Favorite color', id=3)
 
         self.blue_map = TopicOption.objects.create(topic=self.topic,
-                                                   option=self.blue)
+                                                   option=self.blue, id=4)
         self.red_map = TopicOption.objects.create(topic=self.topic,
-                                                  option=self.red)
+                                                  option=self.red, id=5)
 
         self.user = User.objects.create_user('user', 'user@example.com',
-                                             'password')
+                                             'password', id=6)
 
     def test_create_contest(self):
         contest = Contest.create_random(self.topic, self.user)

@@ -271,9 +271,9 @@ class TopicContestTestCase(TestCase):
 
         self.c = Client(HTTP_AUTHORIZATION='Token %s' % token)
 
-        self.topic = Topic.objects.create(label="Test Topic")
-        self.first = Option.objects.create(label="Test Option 1")
-        self.second = Option.objects.create(label="Test Option 2")
+        self.topic = Topic.objects.create(label="Test Topic", id=4)
+        self.first = Option.objects.create(label="Test Option 1", id=5)
+        self.second = Option.objects.create(label="Test Option 2", id=6)
 
         for option in [self.first, self.second]:
             topicoption = TopicOption.objects.create(topic=self.topic,
