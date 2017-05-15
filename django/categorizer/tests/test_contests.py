@@ -39,6 +39,11 @@ class ContestTestCase(TestCase):
         winner = contest.contestants.get(topicoption=self.red_map)
         contest.set_winner(winner)
 
+        # Check that we can get a ranking list with a tie
+        top_options = list(self.topic.calculate_top_options(2))
+        # Either order is OK, since the items have the same score
+        self.assertItemsEqual(top_options, [self.red, self.blue])
+
         self.assertEqual(self.red_map.rankings
                          .get(contest=contest).score, 1008)
         self.assertEqual(self.blue_map.rankings

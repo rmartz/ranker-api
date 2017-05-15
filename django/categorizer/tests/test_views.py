@@ -390,6 +390,15 @@ class TopicContestTestCase(TestCase):
             {'id': self.first.id, 'label': self.first.label}
         ])
 
+    def test_topic_rankings_tie(self):
+        response = self.c.get('/api/topics/%d/rankings/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+        # Either order is OK since it's a tie
+        self.assertItemsEqual(response.json(), [
+            {'id': self.second.id, 'label': self.second.label},
+            {'id': self.first.id, 'label': self.first.label}
+        ])
+
     def test_topic_rankings_noauth(self):
         response = Client().get('/api/topics/%d/rankings/' % self.topic.id)
         self.assertEqual(response.status_code, 401)

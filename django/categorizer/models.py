@@ -6,7 +6,7 @@ import operator
 from django.db import models
 from django.contrib.auth.models import User
 
-from .ranked_preference import full_ranked_preference
+from .ranked_preference import pairwise_rankings
 
 
 class Option(models.Model):
@@ -19,6 +19,14 @@ class Topic(models.Model):
                                      through='TopicOption')
 
     def calculate_top_options(self, count):
+        def flatten_rankings(rankings):
+            for rank in rankings:
+                if isinstance(rank, set):
+                    for v in rank:
+                        yield v
+                else:
+                    yield rank
+
         all_votes = (self.options.order_by('topicoption__rankings__user',
                                            '-topicoption__rankings__score')
                      .values_list('topicoption__rankings__user__id', 'id'))
@@ -27,13 +35,14 @@ class Topic(models.Model):
         user_votes = (map(operator.itemgetter(1), votes) for _, votes in
                       itertools.groupby(all_votes, lambda x: x[0]))
 
-        results_generator = full_ranked_preference(all_candidates, user_votes)
-        sorted_results = list(itertools.islice(results_generator, count))
+        sorted_ids = pairwise_rankings(all_candidates, user_votes)
+        flatted_ids = flatten_rankings(sorted_ids)
+        top_ids = list(itertools.islice(flatted_ids, count))
 
         top_results = {obj.id: obj for obj in
-                       Option.objects.filter(id__in=sorted_results)}
+                       Option.objects.filter(id__in=top_ids)}
 
-        return [top_results[id] for id in sorted_results]
+        return [top_results[id] for id in top_ids]
 
 
 class TopicOption(models.Model):

@@ -28,6 +28,19 @@ def maxdict(d):
     return max(d.iteritems(), key=itemgetter(1))
 
 
+def strict_maxdict(d):
+    """ Returns the dictionary key with the largest value if only one exists
+    """
+    items = d.items()
+    m = items.pop()
+    for tup in items:
+        if tup[1] == m[1]:
+            m = (None, tup[1])
+        elif tup[1] > m[1]:
+            m = tup
+    return m
+
+
 def odd_man_out(start):
     """ Generates a tuple for each item paired with every other element.
     For example, ['a', 'b'] becomes [['a', ['b']], ['b', ['a']]]
@@ -53,9 +66,11 @@ def instant_runoff(candidates, preferences):
         low_votes = min(round_votes.values())
         if low_votes == high_votes:
             # Last remaining candidates are tied
-            return round_votes.keys()
+            # Use a set to represent that these candidates are unordered
+            return set(round_votes.keys())
 
-        candidates = set(c for (c, v) in round_votes.iteritems() if v > low_votes)
+        candidates = set(c for (c, v) in round_votes.iteritems()
+                         if v > low_votes)
     return None
 
 
@@ -64,7 +79,7 @@ def condorcet_winner(candidates, preferences):
         for opponent in opponents:
             votes = firstif(inlist([candidate, opponent]), preferences)
             counts = Counter(votes)
-            if counts[candidate] < counts[opponent]:
+            if counts[candidate] <= counts[opponent]:
                 # Can't be a condorcet winner if a opponent received more votes
                 return False
         # No opponent had more votes, therefore this is a condorcet winer
@@ -85,12 +100,18 @@ def pairwise_rankings(candidates, preferences):
 
     # Count the votes and pick the winner
     tallies = (Counter(votes) for votes in pair_votes)
-    winners = (maxdict(tally)[0] for tally in tallies)
+    winners = (strict_maxdict(tally)[0] for tally in tallies if tally)
 
     # Count who won how many pairings and sort by their wins
     final_tally = Counter(winners)
-    return sorted(candidates, key=lambda c: final_tally.get(c, 0),
-                  reverse=True)
+    results = sorted(final_tally.keys(), key=final_tally.get,
+                     reverse=True)
+    for k, group in itertools.groupby(results, final_tally.get):
+        group = list(group)
+        if len(group) == 1:
+            yield group[0]
+        else:
+            yield set(group)
 
 
 def full_ranked_preference(candidates, preferences):
