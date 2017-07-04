@@ -390,6 +390,19 @@ class TopicContestTestCase(TestCase):
             {'id': self.first.id, 'label': self.first.label}
         ])
 
+    def test_topic_rankings_limit(self):
+        ranking = self.contest.contestants.get(topicoption__option=self.second)
+        ranking.score = 1600
+        ranking.save()
+
+        response = self.c.get(
+            '/api/topics/%d/rankings/?count=1' % self.topic.id
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [
+            {'id': self.second.id, 'label': self.second.label}
+        ])
+
     def test_topic_rankings_tie(self):
         response = self.c.get('/api/topics/%d/rankings/' % self.topic.id)
         self.assertEqual(response.status_code, 200)

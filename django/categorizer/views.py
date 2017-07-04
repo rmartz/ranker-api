@@ -148,7 +148,10 @@ def contest_manager(request, topic_id):
 def topic_rankings(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
 
-    count = request.GET.get('count', 5)
+    try:
+        count = int(request.GET['count'])
+    except Exception:
+        count = 5
     top_n = topic.calculate_top_options(count)
 
     serialized = OptionSerializer(top_n, many=True)
