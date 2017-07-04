@@ -136,7 +136,7 @@ def contest_manager(request, topic_id):
         try:
             winner = contest.contestants.get(topicoption__option_id=winning_id)
         except OptionRanking.DoesNotExist:
-            raise ParseError()
+            raise ParseError('Unknown winner')
 
         contest.set_winner(winner)
         return Response({
