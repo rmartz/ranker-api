@@ -104,7 +104,7 @@ def pairwise_rankings(candidates, preferences):
 
     # Count who won how many pairings and sort by their wins
     final_tally = Counter(winners)
-    results = sorted(final_tally.keys(), key=final_tally.get,
+    results = sorted(candidates, key=final_tally.get,
                      reverse=True)
     for k, group in itertools.groupby(results, final_tally.get):
         group = list(group)
