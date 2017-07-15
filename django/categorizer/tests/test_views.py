@@ -378,6 +378,13 @@ class TopicContestTestCase(TestCase):
         # Ensure that a new contest was created
         self.assertEqual(Contest.objects.all().count(), 2)
 
+    def test_contest_delete(self):
+        response = self.c.delete('/api/topics/%d/contests/' % self.topic.id)
+        self.assertEqual(response.status_code, 200)
+
+        # There should not be any contests remaining
+        self.assertFalse(Contest.objects.all().exists())
+
     def test_topic_rankings(self):
         ranking = self.contest.contestants.get(topicoption__option=self.second)
         ranking.score = 1600

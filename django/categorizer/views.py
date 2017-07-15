@@ -115,7 +115,7 @@ def topic_option_detail(request, topic_id, option_id):
         })
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'DELETE'])
 def contest_manager(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
     try:
@@ -124,14 +124,18 @@ def contest_manager(request, topic_id):
             winner__isnull=True
         )
     except Contest.DoesNotExist:
-        contest = Contest.create_random(topic=topic, user=request.user)
+        if request.method == 'GET':
+            contest = Contest.create_random(topic=topic, user=request.user)
+        else:
+            raise
 
     if request.method == 'GET':
         contestants = Option.objects.filter(
             topicoption__rankings__in=contest.contestants.all())
         serialized = OptionSerializer(contestants, many=True)
         return Response(serialized.data)
-    elif request.method == 'POST':
+
+    if request.method == 'POST':
         winning_id = request.POST['winner']
         try:
             winner = contest.contestants.get(topicoption__option_id=winning_id)
@@ -139,9 +143,12 @@ def contest_manager(request, topic_id):
             raise ParseError('Unknown winner')
 
         contest.set_winner(winner)
-        return Response({
-            'status': 'OK'
-        })
+    elif request.method == 'DELETE':
+        contest.delete()
+
+    return Response({
+        'status': 'OK'
+    })
 
 
 @api_view(['GET'])
