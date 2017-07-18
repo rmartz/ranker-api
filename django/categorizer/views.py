@@ -18,19 +18,14 @@ def topic_list(request):
     elif request.method == 'POST':
         label = request.POST['label']
         topic = Topic.objects.create(label=label)
-        return Response({
-            'id': topic.id,
-            'status': 'created'
-        }, status=HTTP_201_CREATED)
+        serialized = TopicSerializer(topic)
+        return Response(serialized.data, status=HTTP_201_CREATED)
 
 
 @api_view(['GET', 'DELETE', 'POST'])
 def topic_detail(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
-    if request.method == 'GET':
-        serialized = TopicSerializer(topic)
-        return Response(serialized.data)
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         topic.delete()
         return Response({
             'status': 'deleted'
@@ -38,10 +33,9 @@ def topic_detail(request, topic_id):
     elif request.method == 'POST':
         topic.label = request.POST['label']
         topic.save()
-        return Response({
-            'id': topic.id,
-            'status': 'updated'
-        })
+    # GET or POST, return the topic
+    serialized = TopicSerializer(topic)
+    return Response(serialized.data)
 
 
 @api_view(['GET', 'POST'])
@@ -53,19 +47,14 @@ def option_list(request):
     elif request.method == 'POST':
         label = request.POST['label']
         option = Option.objects.create(label=label)
-        return Response({
-            'id': option.id,
-            'status': 'created'
-        }, status=HTTP_201_CREATED)
+        serialized = OptionSerializer(option)
+        return Response(serialized.data, status=HTTP_201_CREATED)
 
 
 @api_view(['GET', 'DELETE', 'POST'])
 def option_detail(request, option_id):
     option = get_object_or_404(Option, id=option_id)
-    if request.method == 'GET':
-        serialized = OptionSerializer(option)
-        return Response(serialized.data)
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         option.delete()
         return Response({
             'status': 'deleted'
@@ -73,10 +62,9 @@ def option_detail(request, option_id):
     elif request.method == 'POST':
         option.label = request.POST['label']
         option.save()
-        return Response({
-            'id': option.id,
-            'status': 'updated'
-        })
+    # GET or POST, return the serialized option
+    serialized = OptionSerializer(option)
+    return Response(serialized.data)
 
 
 @api_view(['GET'])

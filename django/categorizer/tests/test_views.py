@@ -30,10 +30,9 @@ class TopicApiTestCase(TestCase):
         self.assertEqual(response.status_code, 201)
 
         response_json = response.json()
-        topic_id = response_json['id']
-        self.assertEqual(response_json, {'id': topic_id, 'status': 'created'})
-
-        topic = Topic.objects.get(id=topic_id)
+        topic = Topic.objects.get()
+        self.assertEqual(response_json, {'id': topic.id,
+                                         'label': topic.label})
         self.assertEqual(topic.label, 'Testing 123')
 
     def test_topic_list(self):
@@ -99,7 +98,7 @@ class TopicApiTestCase(TestCase):
                                {'label': 'Testing 456'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': topic.id,
-                                           'status': 'updated'})
+                                           'label': 'Testing 456'})
 
         newTopic = Topic.objects.get(id=topic.id)
         self.assertEqual(newTopic.label, 'Testing 456')
@@ -144,11 +143,9 @@ class OptionApiTestCase(TestCase):
         self.assertEqual(response.status_code, 201)
 
         response_json = response.json()
-        option_id = response_json['id']
-        self.assertEqual(response_json, {'id': option_id,
-                                         'status': 'created'})
-
-        option = Option.objects.get(id=option_id)
+        option = Option.objects.get()
+        self.assertEqual(response_json, {'id': option.id,
+                                         'label': option.label})
         self.assertEqual(option.label, 'Testing 123')
 
     def test_option_list(self):
@@ -179,7 +176,7 @@ class OptionApiTestCase(TestCase):
                                {'label': 'Testing 456'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'id': option.id,
-                                           'status': 'updated'})
+                                           'label': 'Testing 456'})
 
         newOption = Option.objects.get(id=option.id)
         self.assertEqual(newOption.label, 'Testing 456')
