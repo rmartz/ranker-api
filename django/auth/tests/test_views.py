@@ -39,6 +39,12 @@ class TokenApiTestCase(APITestCase):
         response_json = response.json()
         self.assertEqual(response_json['token'], self.token.key)
 
+    def test_get_token_failure(self):
+        response = self.client.post('/auth/user/token',
+                                    {'username': 'user',
+                                     'password': 'badpass'})
+        self.assertEqual(response.status_code, 403)
+
     def test_token_reset(self):
         response = self.client.delete('/auth/user/token',
                                       {'username': 'user',
@@ -50,3 +56,9 @@ class TokenApiTestCase(APITestCase):
 
         new_token = Token.objects.get(user=self.user)
         self.assertNotEqual(response_json['token'], new_token)
+
+    def test_token_failure(self):
+        response = self.client.delete('/auth/user/token',
+                                      {'username': 'user',
+                                       'password': 'badpass'})
+        self.assertEqual(response.status_code, 403)
