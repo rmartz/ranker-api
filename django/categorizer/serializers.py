@@ -14,6 +14,7 @@ class OptionSerializer(serializers.ModelSerializer):
         model = Option
         fields = ('id', 'label')
 
+
 class ContestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contest

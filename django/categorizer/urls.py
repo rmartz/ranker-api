@@ -1,21 +1,20 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
+router = DefaultRouter()
+router.register(r'options', views.OptionViewSet, 'ranker-options')
+router.register(r'topics', views.TopicViewSet, 'ranker-topics')
+
 urlpatterns = [
-    url(r'^topics/?$', views.topic_list,
-        name='ranker_topics'),
-    url(r'^topics/(?P<topic_id>[1-9][0-9]*)/?$', views.topic_detail,
-        name='ranker_topic_detail'),
+    url(r'^', include(router.urls)),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/options/?$', views.topic_option_list,
-        name='ranker_topic_options'),
+        name='ranker-topics-options'),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/options/(?P<option_id>[1-9][0-9]*)/?$',
-        views.topic_option_detail, name='ranker_topic_option_detail'),
+        views.topic_option_detail, name='ranker-topics-option-detail'),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/contests/?$', views.contest_manager,
-        name='ranker_topic_contest'),
+        name='ranker-topics-contest'),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/rankings/?$', views.topic_rankings,
-        name='ranker_topic_rankings'),
-    url(r'^options/?$', views.option_list, name='ranker_options'),
-    url(r'^options/(?P<option_id>[1-9][0-9]*)/?$', views.option_detail,
-        name='ranker_option_detail'),
+        name='ranker-topics-rankings'),
 ]
