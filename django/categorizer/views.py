@@ -19,14 +19,15 @@ class OptionViewSet(viewsets.ModelViewSet):
     serializer_class = OptionSerializer
     queryset = Option.objects.all()
 
+    def get_queryset(self):
+        queryset = Option.objects.all()
+        try:
+            topic_id = self.request.query_params['topic']
+            queryset = queryset.filter(topics__id=topic_id)
+        except KeyError:
+            pass
 
-@api_view(['GET'])
-def topic_option_list(request, topic_id):
-    topic = get_object_or_404(Topic, id=topic_id)
-    options = (Option.objects.filter(topicoption__topic=topic)
-               .values('id', 'label'))
-    serialized = OptionSerializer(options, many=True)
-    return Response(serialized.data)
+        return queryset
 
 
 @api_view(['GET', 'DELETE', 'PUT'])

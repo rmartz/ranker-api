@@ -9,8 +9,6 @@ router.register(r'topics', views.TopicViewSet, 'ranker-topics')
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^topics/(?P<topic_id>[1-9][0-9]*)/options/?$', views.topic_option_list,
-        name='ranker-topics-options'),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/options/(?P<option_id>[1-9][0-9]*)/?$',
         views.topic_option_detail, name='ranker-topics-option-detail'),
     url(r'^topics/(?P<topic_id>[1-9][0-9]*)/contests/?$', views.contest_manager,

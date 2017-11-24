@@ -70,17 +70,6 @@ class TopicApiTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    def test_topic_options_list_missing(self):
-        url = reverse('ranker-topics-options', kwargs={'topic_id': 1})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_topic_options_detail_missing_topic(self):
-        url = reverse('ranker-topics-option-detail',
-                      kwargs={'topic_id': 1, 'option_id': 1})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
     def test_topic_options_delete_missing_topic(self):
         url = reverse('ranker-topics-option-detail',
                       kwargs={'topic_id': 1, 'option_id': 1})
@@ -230,6 +219,30 @@ class OptionApiTestCase(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404)
 
+    def test_option_for_topic__has_mapping(self):
+        option = Option.objects.create(label='Testing 123')
+        topic = Topic.objects.create(label='Test topic')
+        TopicOption.objects.create(topic=topic, option=option)
+        url = '{}?topic={}'.format(
+            reverse('ranker-options-list'),
+            topic.id
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.json(), [{'id': option.id,
+                                            'label': option.label}])
+        self.assertEqual(response.status_code, 200)
+
+    def test_option_for_topic__no_mapping__empty(self):
+        Option.objects.create(label='Testing 123')
+        topic = Topic.objects.create(label='Test topic')
+        url = '{}?topic={}'.format(
+            reverse('ranker-options-list'),
+            topic.id
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.json(), [])
+        self.assertEqual(response.status_code, 200)
+
 
 class TopicOptionMapTestCase(APITestCase):
     def setUp(self):
@@ -241,29 +254,6 @@ class TopicOptionMapTestCase(APITestCase):
 
         self.topic = Topic.objects.create(label="Test Topic")
         self.option = Option.objects.create(label="Test Option")
-
-    def test_topic_option_list(self):
-        TopicOption.objects.create(topic=self.topic, option=self.option)
-        url = reverse('ranker-topics-options',
-                      kwargs={'topic_id': self.topic.id})
-        response = self.client.get(url)
-        self.assertEqual(response.json(), [{'id': self.option.id,
-                                            'label': self.option.label}])
-        self.assertEqual(response.status_code, 200)
-
-    def test_topic_option_list_empty(self):
-        url = reverse('ranker-topics-options',
-                      kwargs={'topic_id': self.topic.id})
-        response = self.client.get(url)
-        self.assertEqual(response.json(), [])
-        self.assertEqual(response.status_code, 200)
-
-    def test_topic_option_list_noauth(self):
-        self.client.logout()
-        url = reverse('ranker-topics-options',
-                      kwargs={'topic_id': self.topic.id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 401)
 
     def test_topic_option_map_missing(self):
         url = reverse('ranker-topics-option-detail',
